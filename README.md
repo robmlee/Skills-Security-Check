@@ -1,4 +1,4 @@
-# 🛡️ Skills-Security-Check
+# 🛡️ Skills-Security-Check-withFlask
 
 A hybrid AI-powered security auditing tool for scanning skill directories and generating visual security dashboards.
 
@@ -13,9 +13,9 @@ A hybrid AI-powered security auditing tool for scanning skill directories and ge
 
 ## 📖 Overview | 概述
 
-**Skills-Security-Check** is a security scanning tool designed for AI Agent skill repositories. It combines:
+**Skills-Security-Check-withFlask** is a security scanning tool designed for AI Agent skill repositories. It combines:
 
-**Skills-Security-Check** 是一款專為 AI Agent 技能倉庫設計的安全掃描工具，結合了：
+**Skills-Security-Check-withFlask** 是一款專為 AI Agent 技能倉庫設計的安全掃描工具，結合了：
 
 1. **Static Analysis | 靜態分析** - Regex-based pattern matching to identify potential risks | 使用正則表達式匹配潛在風險
 2. **AI Intelligence | AI 智慧分析** - Leverages AI agents to analyze findings and reduce false positives | 利用 AI 代理分析發現並減少誤報
@@ -44,20 +44,16 @@ A hybrid AI-powered security auditing tool for scanning skill directories and ge
 
 ```bash
 # Clone the repository | 複製專案
-git clone https://github.com/robmlee/Skills-Security-Check.git
+git clone https://github.com/robmlee/Skills-Security-Check-withFlask.git
 
 # Navigate to the skill directory | 進入技能目錄
-cd Skills-Security-Check
+cd Skills-Security-Check-withFlask
 ```
 
 ### Usage | 使用方式
 
 ```bash
-# Create a new scan_skill directory
-mkdir scan_skill
-
 # Create venv and activate it
-cd scan_skill
 python3 -m venv .venv
 source myenv/bin/activate
 
@@ -68,8 +64,8 @@ pip install -r requirements.txt
 # Scan a directory of skills | 掃描技能目錄
 python3 scripts/scan_skills_flask.py --root /path/to/your/skills
 
-# The dashboard will auto-open in your browser
-# 儀表板將自動在瀏覽器中開啟
+# Then browse url: http:[claw_machine_ip:5000] to see the result
+# 瀏覽 http:[claw_machine_ip:5000] 即可檢視儀表板
 ```
 
 ### Output Structure | 輸出結構
@@ -125,11 +121,12 @@ See [SKILL.md](SKILL.md) for detailed agent instructions.
 ## 📁 Project Structure | 專案結構
 
 ```
-Skills-Security-Check/
+Skills-Security-Check-withFlask/
 ├── SKILL.md                    # AI agent instructions | AI 代理指示
 ├── README.md                   # This file | 本檔案
 ├── scripts/
-│   └── scan_skills.py          # Main scanner script | 主掃描腳本
+│   └── scan_skills.py          # Local gui scanner script | 地端掃描腳本
+│   └── scan_skills_flask.py    # Remote and Local Web UI scanner script | 遠端/地端主掃描腳本
 ├── assets/
 │   └── dashboard_template.html # Dashboard HTML template | 儀表板 HTML 模板
 └── reports/                    # Generated reports | 生成的報告 (gitignored)
