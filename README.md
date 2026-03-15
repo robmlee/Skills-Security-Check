@@ -44,7 +44,7 @@ A hybrid AI-powered security auditing tool for scanning skill directories and ge
 
 ```bash
 # Clone the repository | 複製專案
-git clone https://github.com/YOUR_USERNAME/Skills-Security-Check.git
+git clone https://github.com/robmlee/Skills-Security-Check.git
 
 # Navigate to the skill directory | 進入技能目錄
 cd Skills-Security-Check
