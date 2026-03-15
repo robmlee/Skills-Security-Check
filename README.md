@@ -53,8 +53,20 @@ cd Skills-Security-Check
 ### Usage | 使用方式
 
 ```bash
+# Create a new scan_skill directory
+mkdir scan_skill
+
+# Create venv and activate it
+cd scan_skill
+python3 -m venv .venv
+source myenv/bin/activate
+
+# Install required packages
+python3 -m pip install --upgrade pip   # upgrade pip
+pip install -r requirements.txt        
+
 # Scan a directory of skills | 掃描技能目錄
-python3 scripts/scan_skills.py --root /path/to/your/skills
+python3 scripts/scan_skills_flask.py --root /path/to/your/skills
 
 # The dashboard will auto-open in your browser
 # 儀表板將自動在瀏覽器中開啟
