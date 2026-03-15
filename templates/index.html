@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🛡️ Skills Security Check</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface2: #273449;
+      --border: #334155;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --red: #ef4444;
+      --orange: #f59e0b;
+      --green: #10b981;
+      --purple: #8b5cf6;
+      --blue: #3b82f6;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 1.5rem 2rem;
+      display: flex; align-items: center; gap: 1rem;
+    }
+    header h1 { font-size: 1.5rem; font-weight: 700; }
+    header span { font-size: 1.8rem; }
+    .subtitle { color: var(--muted); font-size: 0.85rem; margin-top: 0.2rem; }
+
+    /* ── Layout ── */
+    .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+
+    /* ── Upload card ── */
+    .upload-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+    .upload-card h2 { font-size: 1.1rem; margin-bottom: 1.5rem; color: var(--accent); }
+
+    .tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+    .tab {
+      padding: 0.5rem 1.2rem; border-radius: 8px; border: 1px solid var(--border);
+      background: transparent; color: var(--muted); cursor: pointer; font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+    .tab.active { background: var(--accent); color: #0f172a; border-color: var(--accent); font-weight: 600; }
+    .tab:hover:not(.active) { border-color: var(--accent); color: var(--accent); }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .drop-zone {
+      border: 2px dashed var(--border); border-radius: 12px;
+      padding: 3rem; text-align: center; cursor: pointer;
+      transition: all 0.2s; color: var(--muted);
+    }
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: var(--accent); color: var(--accent); background: rgba(56,189,248,0.05);
+    }
+    .drop-zone .icon { font-size: 3rem; margin-bottom: 1rem; }
+    .drop-zone p { font-size: 0.9rem; }
+    .drop-zone small { font-size: 0.78rem; margin-top: 0.5rem; display: block; }
+
+    #file-input { display: none; }
+
+    textarea {
+      width: 100%; height: 220px; background: var(--surface2); color: var(--text);
+      border: 1px solid var(--border); border-radius: 10px; padding: 1rem;
+      font-family: 'Consolas', monospace; font-size: 0.85rem; resize: vertical;
+    }
+    textarea:focus { outline: none; border-color: var(--accent); }
+
+    .row { display: flex; gap: 1rem; align-items: flex-end; margin-top: 0.8rem; }
+    .field { flex: 1; }
+    label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.4rem; }
+    input[type="text"] {
+      width: 100%; background: var(--surface2); color: var(--text);
+      border: 1px solid var(--border); border-radius: 8px; padding: 0.6rem 0.9rem;
+      font-size: 0.9rem;
+    }
+    input[type="text"]:focus { outline: none; border-color: var(--accent); }
+
+    .btn-scan {
+      padding: 0.7rem 2rem; background: var(--accent); color: #0f172a;
+      border: none; border-radius: 10px; font-weight: 700; font-size: 0.95rem;
+      cursor: pointer; transition: opacity 0.2s; white-space: nowrap;
+    }
+    .btn-scan:hover { opacity: 0.85; }
+    .btn-scan:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ── Spinner ── */
+    .spinner {
+      display: none; text-align: center; padding: 3rem;
+    }
+    .spinner.active { display: block; }
+    .spinner-ring {
+      width: 56px; height: 56px; border: 4px solid var(--border);
+      border-top-color: var(--accent); border-radius: 50%;
+      animation: spin 0.8s linear infinite; margin: 0 auto 1rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Dashboard ── */
+    #dashboard { display: none; }
+    #dashboard.active { display: block; }
+
+    .summary-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1rem; margin-bottom: 2rem;
+    }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.2rem; text-align: center;
+    }
+    .stat-card .value { font-size: 2.2rem; font-weight: 800; line-height: 1; }
+    .stat-card .label { font-size: 0.78rem; color: var(--muted); margin-top: 0.4rem; }
+
+    .score-ring {
+      width: 120px; height: 120px; margin: 0 auto 0.5rem;
+      position: relative;
+    }
+    .score-ring svg { transform: rotate(-90deg); }
+    .score-text {
+      position: absolute; inset: 0; display: flex;
+      align-items: center; justify-content: center;
+      flex-direction: column;
+    }
+    .score-text .num { font-size: 1.8rem; font-weight: 800; }
+    .score-text .lbl { font-size: 0.65rem; color: var(--muted); }
+
+    /* ── Filters ── */
+    .filters { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .filter-btn {
+      padding: 0.4rem 1rem; border-radius: 20px; border: 1px solid var(--border);
+      background: transparent; color: var(--muted); cursor: pointer; font-size: 0.82rem;
+      transition: all 0.15s;
+    }
+    .filter-btn.active { font-weight: 600; }
+    .filter-btn[data-filter="All"].active { background: var(--accent); color: #0f172a; border-color: var(--accent); }
+    .filter-btn[data-filter="High"].active { background: var(--red); color: #fff; border-color: var(--red); }
+    .filter-btn[data-filter="Medium"].active { background: var(--orange); color: #0f172a; border-color: var(--orange); }
+    .filter-btn[data-filter="Low"].active { background: var(--green); color: #0f172a; border-color: var(--green); }
+
+    /* ── File cards ── */
+    .file-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; margin-bottom: 1rem; overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .file-card:hover { border-color: var(--accent); }
+
+    .file-header {
+      padding: 1rem 1.2rem; display: flex; align-items: center;
+      justify-content: space-between; cursor: pointer; gap: 1rem;
+    }
+    .file-name { font-family: monospace; font-size: 0.88rem; flex: 1; word-break: break-all; }
+    .badge {
+      padding: 0.25rem 0.8rem; border-radius: 20px; font-size: 0.75rem;
+      font-weight: 700; white-space: nowrap;
+    }
+    .badge-high { background: rgba(239,68,68,0.15); color: var(--red); }
+    .badge-medium { background: rgba(245,158,11,0.15); color: var(--orange); }
+    .badge-low { background: rgba(16,185,129,0.15); color: var(--green); }
+    .finding-count { color: var(--muted); font-size: 0.8rem; }
+    .chevron { color: var(--muted); transition: transform 0.2s; font-size: 0.9rem; }
+    .file-card.open .chevron { transform: rotate(180deg); }
+
+    .findings-body { display: none; padding: 0 1.2rem 1.2rem; }
+    .file-card.open .findings-body { display: block; }
+
+    .finding-item {
+      display: grid; grid-template-columns: auto 1fr; gap: 0.5rem 1rem;
+      padding: 0.7rem 0; border-bottom: 1px solid var(--border);
+      align-items: start;
+    }
+    .finding-item:last-child { border-bottom: none; }
+    .cat-dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 0.35rem; flex-shrink: 0; }
+    .finding-desc { font-size: 0.85rem; }
+    .finding-meta { font-size: 0.75rem; color: var(--muted); margin-top: 0.2rem; }
+    .finding-snippet {
+      font-family: monospace; font-size: 0.75rem; background: var(--surface2);
+      padding: 0.4rem 0.6rem; border-radius: 6px; margin-top: 0.4rem;
+      word-break: break-all; color: #cbd5e1;
+    }
+
+    .no-findings { color: var(--green); text-align: center; padding: 1rem; font-size: 0.9rem; }
+
+    /* ── Category breakdown ── */
+    .cat-bars { margin-bottom: 2rem; }
+    .cat-bar-item { margin-bottom: 0.8rem; }
+    .cat-bar-label { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.3rem; }
+    .cat-bar-track { height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+    .cat-bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+
+    .section-title { font-size: 1rem; font-weight: 600; color: var(--accent); margin-bottom: 1rem; }
+
+    .new-scan-btn {
+      margin-bottom: 2rem;
+      padding: 0.6rem 1.4rem; background: var(--surface); color: var(--text);
+      border: 1px solid var(--border); border-radius: 8px; cursor: pointer;
+      font-size: 0.85rem; transition: all 0.2s;
+    }
+    .new-scan-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── Footer ── */
+    footer { text-align: center; padding: 2rem; color: var(--muted); font-size: 0.78rem; border-top: 1px solid var(--border); margin-top: 3rem; }
+  </style>
+</head>
+<body>
+
+<header>
+  <span>🛡️</span>
+  <div>
+    <h1>Skills Security Check</h1>
+    <div class="subtitle">AI Agent Skill 安全掃描儀表板 — Flask Web Edition</div>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Upload Section -->
+  <div class="upload-card" id="upload-section">
+    <h2>🔍 選擇掃描方式</h2>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="file">📁 上傳檔案 / ZIP</button>
+      <button class="tab" data-tab="paste">📋 貼上程式碼</button>
+    </div>
+
+    <!-- File tab -->
+    <div class="tab-panel active" id="tab-file">
+      <div class="drop-zone" id="drop-zone">
+        <div class="icon">📂</div>
+        <p>拖曳檔案或 ZIP 壓縮包到此處，或點擊選擇</p>
+        <small>支援：.py .js .ts .sh .md .yaml .json .env .go .rb 及 .zip 壓縮包</small>
+        <input type="file" id="file-input" accept=".py,.js,.ts,.sh,.md,.txt,.yaml,.yml,.json,.env,.zip,.toml,.rb,.go" />
+      </div>
+      <div style="margin-top:1rem; text-align:center;">
+        <button class="btn-scan" id="btn-file-scan" disabled>🚀 開始掃描</button>
+      </div>
+    </div>
+
+    <!-- Paste tab -->
+    <div class="tab-panel" id="tab-paste">
+      <textarea id="paste-content" placeholder="貼上要掃描的程式碼或 SKILL.md 內容…"></textarea>
+      <div class="row">
+        <div class="field">
+          <label>檔案名稱（選填）</label>
+          <input type="text" id="paste-filename" placeholder="my_skill.py" />
+        </div>
+        <button class="btn-scan" id="btn-paste-scan">🚀 開始掃描</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spinner -->
+  <div class="spinner" id="spinner">
+    <div class="spinner-ring"></div>
+    <p style="color: var(--muted);">掃描中，請稍候…</p>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dashboard">
+    <button class="new-scan-btn" id="new-scan-btn">← 重新掃描</button>
+
+    <!-- Summary grid -->
+    <div class="summary-grid" id="summary-grid"></div>
+
+    <!-- Category breakdown -->
+    <div class="upload-card" id="cat-section">
+      <div class="section-title">📊 風險類別分佈</div>
+      <div class="cat-bars" id="cat-bars"></div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+      <button class="filter-btn active" data-filter="All">全部</button>
+      <button class="filter-btn" data-filter="High">🔴 High</button>
+      <button class="filter-btn" data-filter="Medium">🟡 Medium</button>
+      <button class="filter-btn" data-filter="Low">🟢 Low</button>
+    </div>
+
+    <!-- File list -->
+    <div id="file-list"></div>
+  </div>
+
+</div>
+
+<footer>
+  🛡️ Skills Security Check — Flask Web Edition &nbsp;·&nbsp; 基於 <a href="https://github.com/Toolsai/Skills-Security-Check" style="color:var(--accent)">Toolsai/Skills-Security-Check</a> 改寫
+</footer>
+
+<script>
+// ── Tab switching ──────────────────────────────────────────────────────────────
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+  });
+});
+
+// ── File drag & drop ──────────────────────────────────────────────────────────
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+let selectedFile = null;
+
+dropZone.addEventListener('click', () => fileInput.click());
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f) setFile(f);
+});
+fileInput.addEventListener('change', () => {
+  if (fileInput.files[0]) setFile(fileInput.files[0]);
+});
+
+function setFile(f) {
+  selectedFile = f;
+  dropZone.innerHTML = `<div class="icon">✅</div><p style="color:var(--accent)">${f.name}</p><small>${(f.size/1024).toFixed(1)} KB</small>`;
+  document.getElementById('btn-file-scan').disabled = false;
+}
+
+// ── Scan actions ──────────────────────────────────────────────────────────────
+document.getElementById('btn-file-scan').addEventListener('click', async () => {
+  if (!selectedFile) return;
+  const fd = new FormData();
+  fd.append('file', selectedFile);
+  await runScan(fetch('/scan', { method: 'POST', body: fd }));
+});
+
+document.getElementById('btn-paste-scan').addEventListener('click', async () => {
+  const content = document.getElementById('paste-content').value.trim();
+  if (!content) return alert('請先貼上程式碼');
+  const filename = document.getElementById('paste-filename').value || 'pasted_code.txt';
+  await runScan(fetch('/scan/text', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ content, filename })
+  }));
+});
+
+async function runScan(fetchPromise) {
+  document.getElementById('upload-section').style.display = 'none';
+  document.getElementById('spinner').classList.add('active');
+  document.getElementById('dashboard').classList.remove('active');
+
+  try {
+    const res = await fetchPromise;
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    renderDashboard(data);
+  } catch (e) {
+    alert('掃描失敗：' + e.message);
+    resetUI();
+  } finally {
+    document.getElementById('spinner').classList.remove('active');
+  }
+}
+
+document.getElementById('new-scan-btn').addEventListener('click', resetUI);
+
+function resetUI() {
+  document.getElementById('upload-section').style.display = '';
+  document.getElementById('dashboard').classList.remove('active');
+  document.getElementById('spinner').classList.remove('active');
+}
+
+// ── Render dashboard ──────────────────────────────────────────────────────────
+const CAT_META = {
+  sensitive_operations: { label: '🔑 Sensitive Ops', color: '#f59e0b' },
+  network_activity:     { label: '🌐 Network',       color: '#3b82f6' },
+  obfuscation:          { label: '🎭 Obfuscation',   color: '#8b5cf6' },
+  package_installs:     { label: '📦 Packages',      color: '#10b981' },
+  high_risk:            { label: '⚠️ High-Risk',     color: '#ef4444' },
+};
+
+function renderDashboard(data) {
+  const { summary, results } = data;
+
+  // Summary cards
+  const scoreColor = summary.security_score >= 70 ? '#10b981' : summary.security_score >= 40 ? '#f59e0b' : '#ef4444';
+  const circumference = 2 * Math.PI * 44;
+  const dash = circumference * (summary.security_score / 100);
+
+  document.getElementById('summary-grid').innerHTML = `
+    <div class="stat-card" style="grid-row: span 1;">
+      <div class="score-ring">
+        <svg width="120" height="120" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="44" fill="none" stroke="var(--border)" stroke-width="10"/>
+          <circle cx="60" cy="60" r="44" fill="none" stroke="${scoreColor}" stroke-width="10"
+            stroke-dasharray="${dash} ${circumference}" stroke-linecap="round"/>
+        </svg>
+        <div class="score-text">
+          <span class="num" style="color:${scoreColor}">${summary.security_score}</span>
+          <span class="lbl">安全評分</span>
+        </div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="value">${summary.total_files}</div>
+      <div class="label">掃描檔案數</div>
+    </div>
+    <div class="stat-card">
+      <div class="value" style="color:var(--red)">${summary.total_findings}</div>
+      <div class="label">發現總計</div>
+    </div>
+    <div class="stat-card">
+      <div class="value" style="color:var(--red)">${summary.high}</div>
+      <div class="label">🔴 High Risk</div>
+    </div>
+    <div class="stat-card">
+      <div class="value" style="color:var(--orange)">${summary.medium}</div>
+      <div class="label">🟡 Medium Risk</div>
+    </div>
+    <div class="stat-card">
+      <div class="value" style="color:var(--green)">${summary.low}</div>
+      <div class="label">🟢 Low Risk</div>
+    </div>
+  `;
+
+  // Category bars
+  const catTotals = summary.category_totals;
+  const maxCat = Math.max(...Object.values(catTotals), 1);
+  const catHtml = Object.entries(CAT_META).map(([key, meta]) => {
+    const count = catTotals[key] || 0;
+    const pct = (count / maxCat * 100).toFixed(1);
+    return `
+      <div class="cat-bar-item">
+        <div class="cat-bar-label">
+          <span>${meta.label}</span>
+          <span style="color:${meta.color}">${count}</span>
+        </div>
+        <div class="cat-bar-track">
+          <div class="cat-bar-fill" style="width:${pct}%; background:${meta.color}"></div>
+        </div>
+      </div>`;
+  }).join('');
+  document.getElementById('cat-bars').innerHTML = catHtml;
+
+  // File list
+  window._results = results;
+  renderFileList('All');
+
+  document.getElementById('dashboard').classList.add('active');
+}
+
+function renderFileList(filter) {
+  const results = window._results || [];
+  const filtered = filter === 'All' ? results : results.filter(r => r.risk_level === filter);
+  const container = document.getElementById('file-list');
+
+  if (filtered.length === 0) {
+    container.innerHTML = `<p style="color:var(--muted);text-align:center;padding:2rem">沒有符合的結果</p>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map((r, i) => {
+    const badgeClass = `badge-${r.risk_level.toLowerCase()}`;
+    const findings = r.findings;
+
+    const findingsHtml = findings.length === 0
+      ? `<div class="no-findings">✅ 未發現安全疑慮</div>`
+      : findings.map(f => `
+          <div class="finding-item">
+            <div class="cat-dot" style="background:${f.color}"></div>
+            <div>
+              <div class="finding-desc">${escHtml(f.description)}</div>
+              <div class="finding-meta">${escHtml(f.label)} &nbsp;·&nbsp; 第 ${f.line} 行 &nbsp;·&nbsp; ${escHtml(f.file)}</div>
+              <div class="finding-snippet">${escHtml(f.snippet)}</div>
+            </div>
+          </div>`).join('');
+
+    return `
+      <div class="file-card" id="card-${i}">
+        <div class="file-header" onclick="toggleCard(${i})">
+          <span class="file-name">📄 ${escHtml(r.file)}</span>
+          <span class="finding-count">${findings.length} 項發現</span>
+          <span class="badge ${badgeClass}">${r.risk_level}</span>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="findings-body">${findingsHtml}</div>
+      </div>`;
+  }).join('');
+}
+
+function toggleCard(i) {
+  document.getElementById('card-' + i).classList.toggle('open');
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Filter buttons ──────────────────────────────────────────────────────────────
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderFileList(btn.dataset.filter);
+  });
+});
+</script>
+</body>
+</html>
